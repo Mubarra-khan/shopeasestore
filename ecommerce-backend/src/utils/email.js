@@ -1,0 +1,34 @@
+const nodemailer = require("nodemailer");
+
+const emailConfig = {
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT) || 587,
+  secure: Number(process.env.EMAIL_PORT) === 465,
+  auth: process.env.EMAIL_USER && process.env.EMAIL_PASS
+    ? { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    : undefined,
+};
+
+let transporter = null;
+
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport(emailConfig);
+  }
+  return transporter;
+}
+
+async function sendEmail({ to, subject, html, text }) {
+  const from = process.env.EMAIL_FROM || "no-reply@shopease.local";
+  const transport = getTransporter();
+
+  await transport.sendMail({
+    from,
+    to,
+    subject,
+    text,
+    html,
+  });
+}
+
+module.exports = { sendEmail };
