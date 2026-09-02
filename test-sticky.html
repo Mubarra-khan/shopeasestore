@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    html, body, #root {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, 'Segoe UI', sans-serif;
+      background: #f8fafc;
+      color: #111827;
+    }
+    * { box-sizing: border-box; }
+    body { line-height: 1.5; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    h1, h2, h3, p { margin-top: 0; }
+    main { min-height: calc(100vh - 80px); }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div style="position: relative;">
+      <div style="background: #f97316; color: #fff; font-size: 0.8rem;">
+        <div style="maxWidth: 1280px; margin: 0 auto; padding: 0.4rem 1.5rem; display: flex; justifyContent: flex-end; flexWrap: wrap; gap: 1.25rem;">
+          <a href="#" style="color: #fff; textDecoration: none; fontWeight: 500; fontSize: '0.85rem'">Sell on ShopEase</a>
+          <a href="#" style="color: #fff; textDecoration: none; fontWeight: 500; fontSize: '0.85rem'">Help & Support</a>
+          <a href="#" style="color: #fff; textDecoration: none; fontWeight: 500; fontSize: '0.85rem'">Track Order</a>
+          <div style="position: relative;">
+            <button type="button" style="background: transparent; border: none; color: #fff; cursor: pointer; fontSize: '0.85rem'; fontWeight: 500; padding: '0.25rem 0'; display: flex; alignItems: center; gap: '0.25rem'">user@example.com ▾</button>
+          </div>
+        </div>
+      </div>
+      <header style="background: #f97316; color: #fff; position: sticky; top: 0; zIndex: 50; width: 100%; display: block;">
+        <div style="maxWidth: 1280px; margin: 0 auto; padding: 0.5rem 1.5rem; display: flex; gap: 1.5rem; alignItems: center; flexWrap: wrap;">
+          <a href="#" style="display: inline-flex; alignItems: center;">
+            <div style="width: 160px; height: 48px; overflow: hidden; display: inline-flex; alignItems: center;">
+              <span style="fontSize: 24px; fontWeight: 800;">ShopEase</span>
+            </div>
+          </a>
+          <div style="display: flex; gap: 1.5rem; alignItems: center;">
+            <form style="flex: none; minWidth: 240; display: flex; maxWidth: 680; width: 680; transform: translateY(-20%);">
+              <input placeholder="Search" style="flex: 1; padding: 0.55rem 1rem; background: #fff; border: 1px solid #e5e7eb; borderRight: none; borderRadius: 0; outline: none; fontSize: '0.95rem'" />
+              <div style="width: 1; background: #e5e7eb"></div>
+              <button type="submit" style="padding: 0.55rem 0.55rem; border: 1px solid #e5e7eb; borderLeft: none; background: #fff; color: #f97316; borderRadius: 0; cursor: pointer; display: inline-flex; alignItems: center; justifyContent: center">🔍</button>
+            </form>
+            <div style="display: flex; gap: 1.5rem; alignItems: center;">
+              <a href="#" style="color: #fff; textDecoration: none; fontWeight: 600; fontSize: '0.95rem'; display: inline-flex; alignItems: center;">🛒 <span style="position: absolute; top: -8; right: -10; background: #fff; color: #f97316; fontSize: '0.7rem'; fontWeight: 700; padding: '1px 6px'; borderRadius: 999; minWidth: 18; textAlign: center">3</span></a>
+              <a href="#" style="color: #fff; textDecoration: none; fontWeight: 500; fontSize: '0.95rem'">Seller Dashboard</a>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main style="minHeight: 'calc(100vh - 200px)', background: '#f8fafc'">
+        <div style="padding: '2rem 1.5rem'; maxWidth: 1280; margin: '0 auto'">
+          <p>Page content goes here...</p>
+          <p style="marginTop: '1000px'">Scroll down to see the sticky header...</p>
+        </div>
+      </main>
+      <footer style="background: #0f172a; color: #94a3b8; fontSize: '0.85rem'">
+        <div style="maxWidth: 1280, margin: '0 auto', padding: '3rem 1.5rem 2rem'">Footer content</div>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
