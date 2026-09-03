@@ -15,29 +15,30 @@ const connectDB = async () => {
     }
   }
 
-  try {
-    return await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-    }).then(() => {
-      console.log("✅ MongoDB Connected");
-    });
-  } catch (error) {
-    console.log(`[db] First connection attempt failed: ${error.message} - retrying once`);
+  let retries = 3;
+  while (retries > 0) {
     try {
-      await mongoose.disconnect();
-    } catch (e) {
-      console.log(`[db] Retry disconnect error: ${e.message}`);
+      return await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+      }).then(() => {
+        console.log("✅ MongoDB Connected");
+      });
+    } catch (error) {
+      retries--;
+      console.log(`[db] Connection attempt failed: ${error.message} - retries left: ${retries}`);
+      if (retries > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        try {
+          await mongoose.disconnect();
+        } catch (e) {
+          console.log(`[db] Retry disconnect error: ${e.message}`);
+        }
+      } else {
+        console.log("❌ Database Connection Error:", error.message);
+        throw error;
+      }
     }
-    return mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-    }).then(() => {
-      console.log("✅ MongoDB Connected on retry");
-    }).catch((retryError) => {
-      console.log("❌ Database Connection Error:", retryError.message);
-      throw retryError;
-    });
   }
 };
 
