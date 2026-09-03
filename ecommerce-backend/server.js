@@ -12,8 +12,8 @@ if (!isVercel) {
     console.log(`🚀 Server running on port ${PORT}`);
   });
 } else {
-  module.exports = (async () => {
+  module.exports = async (req, res) => {
     await connectDB();
-    return app;
-  })();
+    app(req, res);
+  };
 }
