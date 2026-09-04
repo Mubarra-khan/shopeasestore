@@ -1,55 +1,41 @@
 const mongoose = require("mongoose");
 
-let connectionPromise = null;
-let isConnecting = false;
+const globalCache = global.__mongooseCache || {
+  conn: null,
+  promise: null,
+};
+
+global.__mongooseCache = globalCache;
 
 const connectDB = async () => {
-  const readyState = mongoose.connection.readyState;
-  console.log(`[db] connectDB start - readyState: ${readyState}`);
-
-  if (readyState === 1) {
-    try {
-      await mongoose.connection.db.admin().ping();
-      console.log("[db] Existing connection healthy");
-      return;
-    } catch (error) {
-      console.log(`[db] Existing connection ping failed: ${error.message} - reconnecting`);
-      try {
-        await mongoose.disconnect();
-      } catch (e) {
-        console.log(`[db] Disconnect error: ${e.message}`);
-      }
-    }
+  if (!process.env.MONGO_URI) {
+    throw new Error("MONGO_URI environment variable is not set");
   }
 
-  if (isConnecting) {
-    console.log("[db] Connection already in progress, awaiting existing promise");
-    return connectionPromise;
+  if (globalCache.conn && mongoose.connection.readyState === 1) {
+    return globalCache.conn;
   }
 
-  isConnecting = true;
-  console.log(`[db] Initiating new connection - MONGO_URI present: ${!!process.env.MONGO_URI}`);
+  if (!globalCache.promise) {
+    globalCache.promise = mongoose
+      .connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+        maxPoolSize: 5,
+      })
+      .then((mongooseInstance) => {
+        console.log("✅ MongoDB Connected");
+        return mongooseInstance.connection;
+      })
+      .catch((error) => {
+        globalCache.promise = null;
+        console.error("❌ MongoDB Connection Error:", error.message);
+        throw error;
+      });
+  }
 
-  connectionPromise = mongoose
-    .connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-      maxPoolSize: 1,
-    })
-    .then(() => {
-      console.log("✅ MongoDB Connected");
-      console.log(`[db] Final readyState: ${mongoose.connection.readyState}`);
-    })
-    .catch((error) => {
-      connectionPromise = null;
-      console.error("❌ MongoDB Connection Error:", error.message);
-      throw error;
-    })
-    .finally(() => {
-      isConnecting = false;
-    });
-
-  return connectionPromise;
+  globalCache.conn = await globalCache.promise;
+  return globalCache.conn;
 };
 
 module.exports = connectDB;

@@ -20,10 +20,8 @@ if (!isVercel) {
     });
 } else {
   module.exports = async (req, res) => {
-    console.log(`[server] Vercel handler invoked - path: ${req.url}`);
     try {
       await connectDB();
-      console.log("[server] DB connection ready, passing to Express");
       return app(req, res);
     } catch (error) {
       console.error("❌ Vercel MongoDB Error:", error.message);
