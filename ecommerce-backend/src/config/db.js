@@ -12,7 +12,8 @@ const connectDB = async () => {
     throw new Error("MONGO_URI environment variable is not set");
   }
 
-  if (globalCache.conn && mongoose.connection.readyState === 1) {
+  if (mongoose.connection.readyState === 1) {
+    globalCache.conn = mongoose.connection;
     return globalCache.conn;
   }
 
@@ -34,8 +35,16 @@ const connectDB = async () => {
       });
   }
 
-  globalCache.conn = await globalCache.promise;
-  return globalCache.conn;
+  const conn = await globalCache.promise;
+
+  if (mongoose.connection.readyState === 1) {
+    globalCache.conn = conn;
+    return conn;
+  }
+
+  globalCache.promise = null;
+  globalCache.conn = null;
+  return connectDB();
 };
 
 module.exports = connectDB;
