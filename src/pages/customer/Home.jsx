@@ -43,9 +43,9 @@ const HeroSlider = ({ banners }) => {
 
   if (!banners.length) {
     return (
-      <section style={{ position: 'relative', background: '#0f172a', color: '#fff', overflow: 'hidden' }}>
-        <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1600&q=80" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 1, pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', maxWidth: 1280, margin: '0 auto', padding: '4rem 1.5rem', display: 'grid', gap: '2rem', alignItems: 'center' }} >
+      <section style={{ position: 'relative', background: '#0f172a', color: '#fff', overflow: 'hidden', minHeight: 420 }}>
+        <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1600&q=80" alt="" style={{ position: 'relative', width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, maxWidth: 1280, margin: '0 auto', padding: '4rem 1.5rem', display: 'grid', gap: '2rem', alignItems: 'center' }} >
           <div style={{ maxWidth: 600 }}>
             <p style={{ textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, color: '#94a3b8', margin: '0 0 0.75rem', fontSize: '0.85rem' }}>Welcome to ShopEase</p>
             <h1 style={{ fontSize: 'clamp(2rem, 4.5vw, 3.25rem)', fontWeight: 800, lineHeight: 1.1, margin: '0 0 1rem' }}>
@@ -75,7 +75,7 @@ const HeroSlider = ({ banners }) => {
   const banner = banners[current];
   return (
     <section
-      style={{ position: 'relative', background: '#0f172a', color: '#fff', overflow: 'hidden' }}
+      style={{ position: 'relative', background: '#0f172a', color: '#fff', overflow: 'hidden', minHeight: 420 }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -85,18 +85,19 @@ const HeroSlider = ({ banners }) => {
           src={item.image}
           alt=""
           style={{
-            position: 'absolute',
-            inset: 0,
+            position: index === current ? 'relative' : 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
             width: '100%',
-            height: '100%',
-            objectFit: 'contain',
+            height: 'auto',
             opacity: index === current ? 1 : 0,
             transition: 'opacity 0.6s ease-in-out',
             pointerEvents: 'none',
           }}
         />
       ))}
-      <div style={{ position: 'relative', maxWidth: 1280, margin: '0 auto', padding: '4rem 1.5rem', display: 'grid', gap: '2rem', alignItems: 'center', minHeight: 420 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, maxWidth: 1280, margin: '0 auto', padding: '4rem 1.5rem', display: 'grid', gap: '2rem', alignItems: 'center' }}>
         <div style={{ maxWidth: 600 }}>
           <p style={{ textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, color: '#94a3b8', margin: '0 0 0.75rem', fontSize: '0.85rem' }}>{banner.title}</p>
           <h1 style={{ fontSize: 'clamp(2rem, 4.5vw, 3.25rem)', fontWeight: 800, lineHeight: 1.1, margin: '0 0 1rem' }}>
