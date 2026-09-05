@@ -5,7 +5,7 @@ import { getBanners } from '../../api/banner.api';
 import ProductCard from '../../components/ProductCard';
 
 const PER_ROW = 6;
-const INITIAL_ROWS = 8;
+const INITIAL_ROWS = 4;
 const PAGE_SIZE = PER_ROW * INITIAL_ROWS;
 
 const Section = ({ title, subtitle, children }) => (
@@ -187,7 +187,7 @@ export default function Home() {
   const discountedProducts = products.filter((p) => p.originalPrice && p.originalPrice > p.price);
   const onSaleProducts = discountedProducts.slice(0, 6);
 
-  const homeCategories = categories.slice(0, 16);
+  const homeCategories = categories.slice(0, 8);
 
   const loadMoreJustForYou = async () => {
     if (justForYouLoading || !hasMoreJustForYou) return;
@@ -217,7 +217,7 @@ export default function Home() {
     return (
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 1.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
-          {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+          {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       </div>
     );
