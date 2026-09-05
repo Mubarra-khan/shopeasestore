@@ -31,6 +31,16 @@ const emptyForm = {
 
 const money = (value) => `$ ${Number(value || 0).toFixed(2)}`;
 
+const normalizeProductImage = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  if (url.startsWith('http://localhost:5000/uploads/')) {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const origin = apiUrl.replace(/\/api\/?$/, '');
+    return url.replace('http://localhost:5000', origin);
+  }
+  return url;
+};
+
 export default function SellerProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +71,13 @@ export default function SellerProducts() {
     setLoading(true);
     try {
       const response = await getSellerProducts();
-      setProducts(response?.data?.data || []);
+      const products = (response?.data?.data || []).map((product) => ({
+        ...product,
+        image: normalizeProductImage(product.image),
+        images: (product.images || []).map(normalizeProductImage),
+        descriptionImages: (product.descriptionImages || []).map(normalizeProductImage),
+      }));
+      setProducts(products);
       setError('');
     } catch (err) {
       setError(err?.response?.data?.message || 'Unable to load your products');
@@ -321,6 +337,9 @@ export default function SellerProducts() {
         isForSale: form.isForSale,
       };
 
+      if (!payload.subcategoryRef) delete payload.subcategoryRef;
+      if (!payload.childSubcategoryRef) delete payload.childSubcategoryRef;
+
       if (editingId) {
         await updateSellerProduct(editingId, payload);
       } else {
@@ -344,14 +363,14 @@ export default function SellerProducts() {
       description: product.description,
       price: String(product.price),
       originalPrice: product.originalPrice ? String(product.originalPrice) : '',
-      image: product.image,
+      image: normalizeProductImage(product.image),
       category: product.category,
       categoryRef: product.categoryRef?._id || '',
-      subcategoryRef: product.subcategoryRef?._id || '',
-      childSubcategoryRef: product.childSubcategoryRef?._id || '',
+      subcategoryRef: product.subcategoryRef ? product.subcategoryRef.toString() : '',
+      childSubcategoryRef: product.childSubcategoryRef ? product.childSubcategoryRef.toString() : '',
       stock: String(product.stock),
-      descriptionImages: product.descriptionImages || [],
-      images: product.images || [],
+      descriptionImages: (product.descriptionImages || []).map(normalizeProductImage),
+      images: (product.images || []).map(normalizeProductImage),
       productVideos: product.productVideos || [],
       brand: product.brand || '',
       color: product.color || '',
@@ -367,11 +386,11 @@ export default function SellerProducts() {
     });
     setSelectedImage(null);
     setUploadedImageUrl('');
-    setImagePreview(product.image || '');
+    setImagePreview(normalizeProductImage(product.image) || '');
     setImageError('');
-    setDescriptionImages(product.descriptionImages || []);
+    setDescriptionImages((product.descriptionImages || []).map(normalizeProductImage));
     setDescriptionImageError('');
-    setProductImages(product.images || []);
+    setProductImages((product.images || []).map(normalizeProductImage));
     setProductImageError('');
     setProductVideos(product.productVideos || []);
     setProductVideoError('');
