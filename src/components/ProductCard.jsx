@@ -12,12 +12,24 @@ function getStarColor(index, rating) {
   return '#d1d5db';
 }
 
+const normalizeProductImage = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  if (url.startsWith('http://localhost:5000/uploads/')) {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const origin = apiUrl.replace(/\/api\/?$/, '');
+    return url.replace('http://localhost:5000', origin);
+  }
+  return url;
+};
+
 export default function ProductCard({ product, compact }) {
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   if (!product) return null;
+
+  const normalizedImage = normalizeProductImage(product.image);
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
@@ -60,7 +72,7 @@ export default function ProductCard({ product, compact }) {
         <div className="img-wrap" style={{ position: 'relative', width: '100%', flex: '0 0 65%', minHeight: 135, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {!imgError ? (
             <img
-              src={product.image}
+              src={normalizedImage}
               alt={product.name}
               loading="lazy"
               onError={() => setImgError(true)}
