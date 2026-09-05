@@ -6,7 +6,13 @@ import { useCart } from '../../context/CartContext';
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, total, fetchCart, clearCart } = useCart();
+  const {
+    items,
+    selectedItems,
+    hasSelection,
+    fetchCart,
+    clearCart,
+  } = useCart();
   const [couponCode, setCouponCode] = useState('');
   const [validatedCoupon, setValidatedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
@@ -29,7 +35,7 @@ export default function Checkout() {
     fetchCart();
   }, [fetchCart]);
 
-  const subtotal = useMemo(() => Number(total || 0), [total]);
+  const subtotal = useMemo(() => Number(selectedItems.reduce((sum, item) => sum + Number(item.subtotal || 0), 0) || 0), [selectedItems]);
   const discount = useMemo(() => Number(validatedCoupon?.discountAmount || 0), [validatedCoupon]);
   const finalTotal = useMemo(() => Math.max(0, subtotal - discount), [subtotal, discount]);
 
@@ -71,8 +77,8 @@ export default function Checkout() {
   };
 
   const handleCheckout = async () => {
-    if (!items.length) {
-      setCheckoutError('Your cart is empty');
+    if (!hasSelection || !selectedItems.length) {
+      setCheckoutError('Please select at least one cart item to checkout');
       return;
     }
 
@@ -84,6 +90,10 @@ export default function Checkout() {
         couponCode: validatedCoupon?.couponCode || undefined,
         shippingAddress,
         paymentMethod,
+        items: selectedItems.map((item) => ({
+          productId: item.product?._id || item.productId,
+          quantity: item.quantity,
+        })),
       });
       const order = response?.data?.data || response?.data;
       setCreatedOrder(order);
@@ -119,12 +129,22 @@ export default function Checkout() {
     );
   }
 
+  if (!selectedItems.length) {
+    return (
+      <div>
+        <h2>Checkout</h2>
+        <p>Please select at least one item from your cart to proceed.</p>
+        <Link to="/cart">Back to cart</Link>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'grid', gap: '1.5rem' }}>
       <h2>Checkout</h2>
 
       <div style={{ display: 'grid', gap: '1rem' }}>
-        {items.map((item) => (
+        {selectedItems.map((item) => (
           <div key={item.product?._id} style={{ display: 'flex', justifyContent: 'space-between', border: '1px solid #e2e8f0', background: '#fff', padding: '1rem', borderRadius: 12 }}>
             <div>
               <strong>{item.product?.name}</strong>

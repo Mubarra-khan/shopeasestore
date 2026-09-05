@@ -11,11 +11,14 @@ export function CartProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
+
   const fetchCart = useCallback(async () => {
     if (!isAuthenticated || !token) {
       setItems([]);
       setTotal(0);
       setError('');
+      setSelectedProductIds([]);
       return;
     }
 
@@ -27,6 +30,11 @@ export function CartProvider({ children }) {
       const payload = response?.data?.data || response?.data || { items: [], total: 0 };
       setItems(payload.items || []);
       setTotal(payload.total || 0);
+      setSelectedProductIds((current) =>
+        (payload.items || [])
+          .map((item) => item.product?._id)
+          .filter((id) => id && current.includes(id))
+      );
     } catch (err) {
       setError(err?.response?.data?.message || 'Unable to load cart');
       setItems([]);
@@ -39,6 +47,40 @@ export function CartProvider({ children }) {
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
+
+  const toggleSelection = useCallback((productId) => {
+    setSelectedProductIds((current) => {
+      if (current.includes(productId)) {
+        return current.filter((id) => id !== productId);
+      }
+      return [...current, productId];
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedProductIds((items || []).map((item) => item.product?._id).filter(Boolean));
+  }, [items]);
+
+  const deselectAll = useCallback(() => {
+    setSelectedProductIds([]);
+  }, []);
+
+  const isSelected = useCallback((productId) => {
+    return selectedProductIds.includes(productId);
+  }, [selectedProductIds]);
+
+  const selectedItems = useMemo(() => {
+    return (items || []).filter((item) => isSelected(item.product?._id));
+  }, [items, isSelected]);
+
+  const areAllSelected = useMemo(() => {
+    const availableIds = (items || [])
+      .map((item) => item.product?._id)
+      .filter(Boolean);
+    return availableIds.length > 0 && availableIds.every((id) => selectedProductIds.includes(id));
+  }, [items, selectedProductIds]);
+
+  const hasSelection = useMemo(() => selectedProductIds.length > 0, [selectedProductIds]);
 
   const addItem = useCallback(async (productId, quantity = 1) => {
     setLoading(true);
@@ -119,8 +161,35 @@ export function CartProvider({ children }) {
       clearCart,
       setItems,
       setTotal,
+      selectedProductIds,
+      selectedItems,
+      areAllSelected,
+      hasSelection,
+      toggleSelection,
+      selectAll,
+      deselectAll,
+      isSelected,
     }),
-    [items, total, cartCount, loading, error, fetchCart, addItem, updateQuantity, removeItem, clearCart]
+    [
+      items,
+      total,
+      cartCount,
+      loading,
+      error,
+      fetchCart,
+      addItem,
+      updateQuantity,
+      removeItem,
+      clearCart,
+      selectedProductIds,
+      selectedItems,
+      areAllSelected,
+      hasSelection,
+      toggleSelection,
+      selectAll,
+      deselectAll,
+      isSelected,
+    ]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
