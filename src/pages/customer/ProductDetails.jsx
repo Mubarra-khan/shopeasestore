@@ -266,7 +266,7 @@ export default function ProductDetails() {
     });
     (product.productVideos || []).forEach((url) => {
       if (url) {
-        items.push({ type: 'video', url });
+        items.push({ type: 'video', url: normalizeProductImage(url) });
       }
     });
     return items;
