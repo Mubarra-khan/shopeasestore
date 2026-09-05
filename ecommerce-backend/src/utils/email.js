@@ -7,6 +7,8 @@ const emailConfig = {
   auth: process.env.EMAIL_USER && process.env.EMAIL_PASS
     ? { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     : undefined,
+  connectionTimeout: 10000,
+  socketTimeout: 10000,
 };
 
 let transporter = null;
