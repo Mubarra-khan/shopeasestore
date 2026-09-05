@@ -24,12 +24,19 @@ async function sendEmail({ to, subject, html, text }) {
   const from = process.env.EMAIL_FROM || "no-reply@shopease.local";
   const transport = getTransporter();
 
-  await transport.sendMail({
+  const result = await transport.sendMail({
     from,
     to,
     subject,
     text,
     html,
+  });
+
+  console.log("Password reset email SMTP result:", {
+    messageId: result.messageId,
+    accepted: result.accepted,
+    rejected: result.rejected,
+    response: result.response,
   });
 }
 
