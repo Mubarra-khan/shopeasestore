@@ -246,13 +246,22 @@ export default function ProductDetails() {
 
   const mediaItems = useMemo(() => {
     if (!product) return [];
+    const normalizeProductImage = (url) => {
+      if (!url || typeof url !== 'string') return url;
+      if (url.startsWith('http://localhost:5000/uploads/')) {
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+        const origin = apiUrl.replace(/\/api\/?$/, '');
+        return url.replace('http://localhost:5000', origin);
+      }
+      return url;
+    };
     const items = [];
     if (product.image) {
-      items.push({ type: 'image', url: product.image });
+      items.push({ type: 'image', url: normalizeProductImage(product.image) });
     }
     (product.images || []).forEach((url) => {
       if (url && url !== product.image) {
-        items.push({ type: 'image', url });
+        items.push({ type: 'image', url: normalizeProductImage(url) });
       }
     });
     (product.productVideos || []).forEach((url) => {
@@ -577,9 +586,10 @@ export default function ProductDetails() {
               <p style={{ margin: 0, lineHeight: 1.7, color: '#374151', whiteSpace: 'pre-wrap' }}>{product.description}</p>
               {(product.descriptionImages || []).length > 0 && (
                 <div style={{ display: 'grid', gap: '1rem', marginTop: '1.5rem', gridTemplateColumns: '1fr' }}>
-                  {(product.descriptionImages || []).map((url, index) => (
-                    <img key={index} src={url} alt={`Description ${index + 1}`} style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 8, border: '1px solid #e5e7eb' }} />
-                  ))}
+                  {(product.descriptionImages || []).map((url, index) => {
+                    const normalizedUrl = (!url || typeof url !== 'string') ? url : (url.startsWith('http://localhost:5000/uploads/') ? (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '') + url.slice('http://localhost:5000'.length) : url);
+                    return <img key={index} src={normalizedUrl} alt={`Description ${index + 1}`} style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 8, border: '1px solid #e5e7eb' }} />;
+                  })}
                 </div>
               )}
               {(() => {
