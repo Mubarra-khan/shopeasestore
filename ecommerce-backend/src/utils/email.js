@@ -9,6 +9,7 @@ const emailConfig = {
     : undefined,
   connectionTimeout: 10000,
   socketTimeout: 10000,
+  family: 4,
 };
 
 let transporter = null;
