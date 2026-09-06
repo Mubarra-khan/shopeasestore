@@ -2,6 +2,16 @@ import { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 
+const normalizeProductImage = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  if (url.startsWith('http://localhost:5000/uploads/')) {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const origin = apiUrl.replace(/\/api\/?$/, '');
+    return url.replace('http://localhost:5000', origin);
+  }
+  return url;
+};
+
 export default function Cart() {
   const navigate = useNavigate();
   const {
@@ -103,7 +113,7 @@ export default function Cart() {
                 onChange={() => toggleSelection(productId)}
               />
               <img
-                src={item.product?.image}
+                src={normalizeProductImage(item.product?.image)}
                 alt={item.product?.name}
                 style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 10 }}
               />
