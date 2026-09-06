@@ -1,6 +1,7 @@
 const Stripe = require("stripe");
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
+const Cart = require("../models/Cart");
 const { consumeCouponUsage } = require("./coupon.controller");
 
 const handleStripeWebhook = async (req, res) => {
@@ -64,6 +65,15 @@ const handleStripeWebhook = async (req, res) => {
               order.stripePaymentIntentId = session.payment_intent;
             }
             await order.save({ session: dbSession });
+
+            const orderedProductIds = order.items.map((item) =>
+              typeof item.product === "object" ? item.product._id : item.product
+            );
+
+            await Cart.findOneAndUpdate(
+              { user: order.user },
+              { $pull: { items: { product: { $in: orderedProductIds } } } }
+            );
           });
         } finally {
           await dbSession.endSession();

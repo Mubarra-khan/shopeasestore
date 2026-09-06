@@ -38,6 +38,15 @@ const checkout = async (req, res) => {
       });
     }
 
+    const selectedItems = req.body && Array.isArray(req.body.items) ? req.body.items : [];
+
+    if (!selectedItems.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No items selected for checkout",
+      });
+    }
+
     // Fetch the authenticated user's cart
     const cart = await Cart.findOne({ user: userId }).populate("items.product");
 
@@ -49,34 +58,58 @@ const checkout = async (req, res) => {
       });
     }
 
-    // Validate all products exist and have sufficient stock
+    // Build a lookup of cart items by product ID
+    const cartItemsByProductId = new Map();
+    for (const cartItem of cart.items) {
+      cartItemsByProductId.set(cartItem.product._id.toString(), cartItem);
+    }
+
+    // Validate and build order from selected items only
     const orderItems = [];
     let totalAmount = 0;
 
-    for (const cartItem of cart.items) {
-      const product = await Product.findById(cartItem.product._id);
+    for (const selected of selectedItems) {
+      const productId = selected.productId;
+      const quantity = Number(selected.quantity) || 1;
+
+      if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid product ID in selection",
+        });
+      }
+
+      const cartItem = cartItemsByProductId.get(productId);
+      if (!cartItem) {
+        return res.status(400).json({
+          success: false,
+          message: `Product ${productId} is not in your cart`,
+        });
+      }
+
+      const product = await Product.findById(productId);
 
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: `Product ${cartItem.product._id} not found`,
+          message: `Product ${productId} not found`,
         });
       }
 
-      if (cartItem.quantity > product.stock) {
+      if (quantity > product.stock) {
         return res.status(400).json({
           success: false,
-          message: `Insufficient stock for product "${product.name}". Available: ${product.stock}, Requested: ${cartItem.quantity}`,
+          message: `Insufficient stock for product "${product.name}". Available: ${product.stock}, Requested: ${quantity}`,
         });
       }
 
       // Store historical pricing in order
-      const subtotal = product.price * cartItem.quantity;
+      const subtotal = product.price * quantity;
       orderItems.push({
         product: product._id,
         productName: product.name,
         price: product.price,
-        quantity: cartItem.quantity,
+        quantity,
         subtotal,
       });
 
@@ -116,8 +149,14 @@ const checkout = async (req, res) => {
       );
     }
 
-    // Clear the authenticated user's cart
-    await Cart.deleteOne({ user: userId });
+    // For COD, remove only the ordered items from the cart immediately
+    if (paymentMethod === 'cod') {
+      const orderedProductIds = orderItems.map((item) => item.product);
+      await Cart.findOneAndUpdate(
+        { user: userId },
+        { $pull: { items: { product: { $in: orderedProductIds } } } }
+      );
+    }
 
     // Populate order with product details for response
     const populatedOrder = await Order.findById(createdOrder._id).populate(

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getOrderById } from '../../api/order.api';
+import { useCart } from '../../context/CartContext';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { fetchCart } = useCart();
 
   const orderId = searchParams.get('orderId');
 
@@ -20,6 +22,10 @@ export default function PaymentSuccess() {
         const response = await getOrderById(orderId);
         const item = response?.data?.data || response?.data;
         setOrder(item);
+
+        if (item && item.paymentStatus === 'paid') {
+          await fetchCart();
+        }
       } catch (err) {
         setError(err?.response?.data?.message || 'Unable to load order status');
       } finally {
@@ -28,7 +34,7 @@ export default function PaymentSuccess() {
     };
 
     fetchOrder();
-  }, [orderId]);
+  }, [orderId, fetchCart]);
 
   return (
     <div style={{ maxWidth: 640, margin: '4rem auto', textAlign: 'center' }}>
