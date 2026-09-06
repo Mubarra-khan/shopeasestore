@@ -97,7 +97,6 @@ export default function Checkout() {
       });
       const order = response?.data?.data || response?.data;
       setCreatedOrder(order);
-      clearCart();
 
       if (paymentMethod === 'cod') {
         return;
