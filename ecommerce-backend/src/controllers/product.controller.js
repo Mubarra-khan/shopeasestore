@@ -37,7 +37,7 @@ const buildProductQuery = async (req) => {
     inStock,
     sort,
     page = "1",
-    limit = "20",
+    limit = req.query.limit,
     brand,
     color,
     material,
@@ -128,7 +128,7 @@ const buildProductQuery = async (req) => {
     }
   }
 
-  return { query, sort: String(sort || "newest"), page: Math.max(1, Number(page) || 1), limit: Math.min(100, Math.max(1, Number(limit) || 20)) };
+  return { query, sort: String(sort || "newest"), page: Math.max(1, Number(page) || 1), limit: limit ? Math.min(100, Math.max(1, Number(limit) || 1)) : null };
 };
 
 const getFilterOptions = async (req, res) => {
@@ -205,7 +205,7 @@ const getAllProducts = async (req, res) => {
         .populate("seller", "name email role")
         .sort(sortOption)
         .skip(safePage === safePage ? skip : 0)
-        .limit(limit);
+        .limit(limit || 0);
 
       const productIds = products.map((product) => product._id);
       const ratingsMap = {};
