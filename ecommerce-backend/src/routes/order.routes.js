@@ -13,11 +13,15 @@ const {
   getManagedCancelledOrders,
   updateOrderStatus,
   createPaymentSession,
+  createStripeCheckoutSession,
+  getOrderByStripeSessionId,
   cancelOrder,
   markOrderAsPaid,
 } = require("../controllers/order.controller");
 
 router.post("/checkout", authMiddleware, checkout);
+router.post("/stripe-session", authMiddleware, createStripeCheckoutSession);
+router.get("/by-session/:sessionId", authMiddleware, getOrderByStripeSessionId);
 router.post(
   "/:orderId/payment-session",
   authMiddleware,

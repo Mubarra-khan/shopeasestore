@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { checkoutOrder, createPaymentSession } from '../../api/order.api';
+import { checkoutOrder, createStripeSession } from '../../api/order.api';
 import { validateCoupon } from '../../api/coupon.api';
 import { useCart } from '../../context/CartContext';
 
@@ -86,23 +86,29 @@ export default function Checkout() {
     setCheckoutError('');
 
     try {
-      const response = await checkoutOrder({
-        couponCode: validatedCoupon?.couponCode || undefined,
-        shippingAddress,
-        paymentMethod,
+      if (paymentMethod === 'cod') {
+        const response = await checkoutOrder({
+          couponCode: validatedCoupon?.couponCode || undefined,
+          shippingAddress,
+          paymentMethod,
+          items: selectedItems.map((item) => ({
+            productId: item.product?._id || item.productId,
+            quantity: item.quantity,
+          })),
+        });
+        const order = response?.data?.data || response?.data;
+        setCreatedOrder(order);
+        return;
+      }
+
+      const paymentResponse = await createStripeSession({
         items: selectedItems.map((item) => ({
           productId: item.product?._id || item.productId,
           quantity: item.quantity,
         })),
+        shippingAddress,
+        couponCode: validatedCoupon?.couponCode || undefined,
       });
-      const order = response?.data?.data || response?.data;
-      setCreatedOrder(order);
-
-      if (paymentMethod === 'cod') {
-        return;
-      }
-
-      const paymentResponse = await createPaymentSession(order._id);
       const paymentUrl = paymentResponse?.data?.data?.url;
 
       if (paymentUrl) {

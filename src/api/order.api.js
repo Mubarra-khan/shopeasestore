@@ -3,9 +3,12 @@ import api from './axios';
 export const checkoutOrder = (payload) => api.post('/orders/checkout', payload);
 export const getOrders = () => api.get('/orders');
 export const getOrderById = (orderId) => api.get(`/orders/${orderId}`);
+export const getOrderByStripeSessionId = (sessionId) => api.get(`/orders/by-session/${sessionId}`);
 export const getOrderReviewStatus = (orderId) => api.get(`/orders/${orderId}/review-status`);
 export const createPaymentSession = (orderId) =>
   api.post(`/orders/${orderId}/payment-session`);
+export const createStripeSession = (payload) =>
+  api.post('/orders/stripe-session', payload);
 export const getManagedOrders = () => api.get('/orders/management');
 export const getManagedCancelledOrders = () => api.get('/orders/management/cancelled');
 export const updateOrderStatus = (orderId, status) =>

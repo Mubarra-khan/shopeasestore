@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getOrderById } from '../../api/order.api';
+import { getOrderByStripeSessionId } from '../../api/order.api';
 import { useCart } from '../../context/CartContext';
+
+const MAX_POLL_MS = 30000;
+const POLL_INTERVAL_MS = 1500;
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -10,38 +13,72 @@ export default function PaymentSuccess() {
   const [error, setError] = useState('');
   const { fetchCart } = useCart();
 
-  const orderId = searchParams.get('orderId');
+  const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      if (!orderId) return;
+    if (!sessionId) return;
+
+    let active = true;
+    const startTime = Date.now();
+
+    const tryFetch = async () => {
       setLoading(true);
       setError('');
 
       try {
-        const response = await getOrderById(orderId);
+        const response = await getOrderByStripeSessionId(sessionId);
         const item = response?.data?.data || response?.data;
+        if (!active) return;
+
         setOrder(item);
 
         if (item && item.paymentStatus === 'paid') {
           await fetchCart();
+          return;
         }
       } catch (err) {
+        if (!active) return;
+        const status = err?.response?.status;
+        if (status === 404 && Date.now() - startTime < MAX_POLL_MS) {
+          setTimeout(tryFetch, POLL_INTERVAL_MS);
+          return;
+        }
         setError(err?.response?.data?.message || 'Unable to load order status');
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchOrder();
-  }, [orderId, fetchCart]);
+    tryFetch();
+
+    return () => {
+      active = false;
+    };
+  }, [sessionId, fetchCart]);
+
+  const confirming = !order && !error;
+  const timedOut = confirming && !loading;
 
   return (
     <div style={{ maxWidth: 640, margin: '4rem auto', textAlign: 'center' }}>
       <h2>Payment processing</h2>
-      <p>Your payment request has been submitted. Please wait while the backend confirms the transaction.</p>
+
+      {confirming ? (
+        <p>Payment received. Confirming your order...</p>
+      ) : (
+        <p>Your payment request has been submitted. Please wait while the backend confirms the transaction.</p>
+      )}
 
       {loading ? <p>Checking order status...</p> : null}
+      {timedOut ? (
+        <p style={{ color: '#6c8177' }}>
+          Payment was received, but order confirmation is still processing.
+          <br />
+          <Link to="/orders">Check my orders</Link> or refresh this page shortly.
+        </p>
+      ) : null}
       {error ? <p style={{ color: 'crimson' }}>{error}</p> : null}
 
       {order ? (

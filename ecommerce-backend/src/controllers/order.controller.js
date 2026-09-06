@@ -789,6 +789,144 @@ const markOrderAsPaid = async (req, res) => {
   }
 };
 
+const createStripeCheckoutSession = async (req, res) => {
+  try {
+    const userId = req.user && req.user.userId;
+    const selectedItems = req.body && Array.isArray(req.body.items) ? req.body.items : [];
+    const shippingAddress = req.body && req.body.shippingAddress;
+    const couponCode = req.body && req.body.couponCode;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    if (!selectedItems.length) {
+      return res.status(400).json({ success: false, message: "No items selected for checkout" });
+    }
+
+    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.addressLine || !shippingAddress.city || !shippingAddress.state || !shippingAddress.postalCode || !shippingAddress.country) {
+      return res.status(400).json({ success: false, message: "Shipping address is required" });
+    }
+
+    const cart = await Cart.findOne({ user: userId }).populate("items.product");
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
+
+    const cartItemsByProductId = new Map();
+    for (const cartItem of cart.items) {
+      cartItemsByProductId.set(cartItem.product._id.toString(), cartItem);
+    }
+
+    const lineItems = [];
+    const enrichedSnapshot = [];
+    let totalAmount = 0;
+
+    for (const selected of selectedItems) {
+      const productId = selected.productId;
+      const quantity = Number(selected.quantity) || 1;
+
+      if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).json({ success: false, message: "Invalid product ID" });
+      }
+
+      const cartItem = cartItemsByProductId.get(productId);
+      if (!cartItem) {
+        return res.status(400).json({ success: false, message: `Product ${productId} is not in your cart` });
+      }
+
+      const product = cartItem.product;
+      if (!product) {
+        return res.status(404).json({ success: false, message: `Product ${productId} not found` });
+      }
+
+      if (quantity > product.stock) {
+        return res.status(400).json({ success: false, message: `Insufficient stock for ${product.name}` });
+      }
+
+      const subtotal = product.price * quantity;
+      totalAmount += subtotal;
+
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: product.name },
+          unit_amount: Math.round(product.price * 100),
+        },
+        quantity,
+      });
+
+      enrichedSnapshot.push({
+        productId: product._id.toString(),
+        quantity,
+        price: product.price,
+        productName: product.name,
+      });
+    }
+
+    let couponData = null;
+    if (couponCode) {
+      couponData = await findUsableCoupon(couponCode, totalAmount);
+    }
+
+    const discountAmount = couponData ? couponData.discountAmount : 0;
+    const finalAmount = Math.max(0, Math.round((totalAmount - discountAmount) * 100) / 100);
+
+    if (discountAmount > 0 && finalAmount !== null) {
+      lineItems.length = 0;
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: `Order` },
+          unit_amount: Math.round(finalAmount * 100),
+        },
+        quantity: 1,
+      });
+    }
+
+    const stripe = getStripeClient();
+    const successUrl = new URL(process.env.STRIPE_SUCCESS_URL || "http://localhost:5173/payment/success");
+    const cancelUrl = new URL(process.env.STRIPE_CANCEL_URL || "http://localhost:5173/payment/cancelled");
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      success_url: successUrl.toString(),
+      cancel_url: cancelUrl.toString(),
+      metadata: {
+        userId: userId.toString(),
+        items: JSON.stringify(enrichedSnapshot),
+        shippingAddress: JSON.stringify(shippingAddress),
+        couponCode: couponCode || '',
+        discountAmount: String(discountAmount),
+        finalAmount: String(finalAmount),
+        totalAmount: String(totalAmount),
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: { sessionId: session.id, url: session.url },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getOrderByStripeSessionId = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const order = await Order.findOne({ stripeCheckoutSessionId: sessionId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+    return res.status(200).json({ success: true, data: order });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   checkout,
   getOrders,
@@ -798,6 +936,8 @@ module.exports = {
   getManagedCancelledOrders,
   updateOrderStatus,
   createPaymentSession,
+  createStripeCheckoutSession,
+  getOrderByStripeSessionId,
   cancelOrder,
   markOrderAsPaid,
 };
