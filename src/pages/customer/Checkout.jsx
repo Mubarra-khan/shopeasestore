@@ -175,7 +175,7 @@ export default function Checkout() {
         ) : null}
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '1.5rem' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '1.5rem', maxWidth: '48rem', margin: '0 auto', width: '100%' }}>
         <h3>Shipping address</h3>
         <div style={{ display: 'grid', gap: '0.75rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.75rem' }}>

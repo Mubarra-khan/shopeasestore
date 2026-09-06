@@ -31,9 +31,6 @@ const createCategory = async (req, res) => {
 const getCategories = async (req, res) => {
   try {
     const categoriesWithCount = await Category.find().sort({ name: 1 }).lean();
-    for (const cat of categoriesWithCount) {
-      cat.productCount = await Product.countDocuments({ categoryRef: cat._id });
-    }
     return res.status(200).json({ success: true, data: categoriesWithCount });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -104,9 +101,6 @@ const getSubcategories = async (req, res) => {
     }
 
     const subcategories = await Subcategory.find({ category: categoryId }).sort({ name: 1 }).lean();
-    for (const sub of subcategories) {
-      sub.productCount = await Product.countDocuments({ subcategoryRef: sub._id });
-    }
     return res.status(200).json({ success: true, data: subcategories });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -122,9 +116,6 @@ const getChildSubcategories = async (req, res) => {
     }
 
     const childSubcategories = await Subcategory.find({ parent: subcategoryId }).sort({ name: 1 }).lean();
-    for (const sub of childSubcategories) {
-      sub.productCount = await Product.countDocuments({ subcategoryRef: sub._id });
-    }
     return res.status(200).json({ success: true, data: childSubcategories });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

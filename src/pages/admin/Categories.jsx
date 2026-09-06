@@ -248,7 +248,7 @@ export default function AdminCategories() {
       <div className="admin-panel" style={{ marginBottom: 24 }}>
         <h2 style={{ marginBottom: 18 }}>{editingCategoryId ? 'Edit category' : 'Add a new category'}</h2>
         <form className="admin-form" onSubmit={handleCategorySubmit}>
-          <div className="admin-form-grid">
+          <div className="category-form-grid">
             <label>
               Name
               <input value={categoryForm.name} onChange={(e) => setCategoryForm((f) => ({ ...f, name: e.target.value }))} required />
@@ -318,7 +318,7 @@ export default function AdminCategories() {
            <section className="admin-panel table-panel" style={{ marginTop: 24 }}>
            <h2 style={{ marginBottom: 18 }}>Subcategories</h2>
           <form className="admin-form" onSubmit={handleSubcategorySubmit} style={{ marginBottom: 18 }}>
-            <div className="admin-form-grid">
+            <div className="category-form-grid">
               <label>
                 Name
                 <input value={subcategoryForm.name} onChange={(e) => setSubcategoryForm((f) => ({ ...f, name: e.target.value }))} required />
@@ -374,7 +374,7 @@ export default function AdminCategories() {
           <section className="admin-panel table-panel" style={{ marginTop: 24 }}>
             <h2 style={{ marginBottom: 18 }}>Child Subcategories</h2>
             <form className="admin-form" onSubmit={handleChildSubcategorySubmit} style={{ marginBottom: 18 }}>
-              <div className="admin-form-grid">
+              <div className="category-form-grid">
                 <label>
                   Name
                   <input value={childSubcategoryForm.name} onChange={(e) => setChildSubcategoryForm((f) => ({ ...f, name: e.target.value }))} required />
