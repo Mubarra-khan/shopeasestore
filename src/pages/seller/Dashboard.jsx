@@ -122,7 +122,7 @@ export default function SellerDashboard() {
                 return (
                   <div key={`${point.month}-${point.year}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                     <strong style={{ fontSize: '0.75rem', color: '#334155' }}>{point.totalOrders}</strong>
-                    <div style={{ width: '100%', height: `${height}%`, background: '#111827', borderRadius: 4, opacity: 0.85 }} />
+                    <div style={{ width: '100%', height: `${height}%`, background: '#F85606', borderRadius: 4, opacity: 0.85 }} />
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{point.month}</span>
                   </div>
                 );

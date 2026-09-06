@@ -138,8 +138,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #e6efdc;
-  color: #55733a;
+  background: #fff3e0;
+  color: #c2410c;
 }
 
 .seller-main {
@@ -174,9 +174,9 @@
   height: 36px;
   border-radius: 999px;
   padding: 0 14px;
-  background: #edf6d7;
-  border: 1px solid #d5e9ad;
-  color: #3f5e17;
+  background: #fff3e0;
+  border: 1px solid #F85606;
+  color: #c2410c;
   font-weight: 700;
   font-size: 12px;
 }
@@ -453,7 +453,7 @@
 }
 
 .seller-button {
-  background: #1a2f29;
+  background: #F85606;
   color: #fff;
 }
 
@@ -468,7 +468,7 @@
 }
 
 .button-primary {
-  background: #2563eb;
+  background: #F85606;
   color: #fff;
   border: 0;
   padding: 10px 16px;
